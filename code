@@ -1,0 +1,51 @@
+*&---------------------------------------------------------------------*
+*& Report YOTMREGIME
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT yotmregime.
+DATA :application_name TYPE string,
+      lv_c(250)        TYPE c,
+      out_host         TYPE string,
+      out_port         TYPE string,
+      out_protocol     TYPE string,
+      out_local_url	   TYPE string,
+      out_absolute_url TYPE string,
+      in_parameters	   TYPE tihttpnvp,
+      ls_parameters	   TYPE ihttpnvp,
+      vh_switch	       TYPE abap_bool.
+
+application_name = 'YS4TM_PORTAL_REGIME_ESPEC'.
+
+AQUI TÔ FORÇANDO PRA SER PT 
+ls_parameters-name  = 'language'.
+ls_parameters-value = 'PT'.
+APPEND ls_parameters TO in_parameters.
+
+cl_wd_utilities=>construct_wd_url(
+  EXPORTING
+    application_name              = application_name      " Application
+    in_parameters                 = in_parameters
+*    in_forward_language           = abap_true     AQUI SEU EU DEIXAR DESCOMENTADO E FLEGADO ELE PEGA A LINGUAGEM EM QUE A PESSOA ESTÁ LOGADA
+  IMPORTING
+    out_host                      = out_host              " Host Name
+    out_port                      = out_port              " Port Number
+    out_protocol                  = out_protocol          " Log
+    out_local_url                 = out_local_url         " URL (Relative to the Current Server)
+    out_absolute_url              = out_absolute_url      " Absolute URL (Incl. Log, Host, Port)
+    vh_switch                     = vh_switch
+).
+
+lv_c = | { out_absolute_url } ?sap_client= { sy-mandt } |.
+CONDENSE lv_c NO-GAPS.
+
+CALL FUNCTION 'CALL_BROWSER'
+  EXPORTING
+    url                    = lv_c
+  EXCEPTIONS
+    frontend_not_supported = 1
+    frontend_error         = 2
+    prog_not_found         = 3
+    no_batch               = 4
+    unspecified_error      = 5
+    OTHERS                 = 6.
